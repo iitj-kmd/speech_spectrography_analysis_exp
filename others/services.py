@@ -305,3 +305,65 @@ public class CommandLineApp {
         }
     }
 }
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class EnumExample {
+
+    public enum StringEnum {
+        VALUE_ONE("This is value one"),
+        VALUE_TWO("Another value here"),
+        SPECIAL_VALUE("A very special string"),
+        DEFAULT_VALUE("Default string");
+
+        private final String value;
+
+        StringEnum(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        //Optional: A method to retrieve an enum by its name (string)
+        private static final Map<String, StringEnum> stringToEnum = new HashMap<>();
+
+        static {
+            for (StringEnum enumValue : values()) {
+                stringToEnum.put(enumValue.name(), enumValue);
+            }
+        }
+
+        public static StringEnum fromString(String name) {
+            return stringToEnum.get(name);
+        }
+    }
+
+    public static void main(String[] args) {
+        // Accessing enum values
+        System.out.println(StringEnum.VALUE_ONE.getValue()); // Output: This is value one
+        System.out.println(StringEnum.SPECIAL_VALUE.getValue()); // Output: A very special string
+
+        //Retrieving an enum instance from a String.
+        String enumName = "VALUE_TWO";
+        StringEnum retrievedEnum = StringEnum.fromString(enumName);
+
+        if(retrievedEnum != null){
+            System.out.println(retrievedEnum.getValue()); // Output: Another value here
+        } else {
+            System.out.println("Enum not found for: " + enumName);
+        }
+
+        //Retrieving an enum instance from a String that does not exist.
+        String enumName2 = "VALUE_THREE";
+        StringEnum retrievedEnum2 = StringEnum.fromString(enumName2);
+
+        if(retrievedEnum2 != null){
+            System.out.println(retrievedEnum2.getValue());
+        } else {
+            System.out.println("Enum not found for: " + enumName2); // Output: Enum not found for: VALUE_THREE
+        }
+    }
+}
