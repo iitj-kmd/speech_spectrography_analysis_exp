@@ -235,3 +235,39 @@ public class RestTemplateConfig {
         <artifactId>httpcore</artifactId>
         <version>4.4.16</version> </dependency>
 </dependencies>
+
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+
+public class HttpHeadersExample {
+
+    public static void main(String[] args) {
+        HttpHeaders headers = new HttpHeaders();
+
+        // Adding a simple header: Content-Type
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        // Adding another simple header: Accept
+        headers.setAccept(java.util.Collections.singletonList(MediaType.APPLICATION_JSON));
+
+        // Adding a custom header: X-Custom-Header
+        headers.set("X-Custom-Header", "CustomValue");
+
+        // Adding multiple values to a header.
+        headers.add("X-Multi-Value-Header", "Value1");
+        headers.add("X-Multi-Value-Header", "Value2");
+
+        //Printing the headers
+        System.out.println(headers.toString());
+
+        //Example of using the headers in a rest template.
+        //Example is commented out, because it requires a rest template to run.
+
+        /*
+        RestTemplate restTemplate = new RestTemplate();
+        HttpEntity<String> entity = new HttpEntity<>("body", headers);
+        ResponseEntity<String> response = restTemplate.exchange("https://example.com/api", HttpMethod.GET, entity, String.class);
+        System.out.println(response.getHeaders());
+        */
+    }
+}
