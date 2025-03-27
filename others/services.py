@@ -192,3 +192,35 @@ public class BTConfig {
         return new BTServiceClient(restTemplate, btServiceUrl, objectMapper);
     }
 }
+
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
+
+import javax.net.ssl.SSLContext;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
+
+public class RestTemplateConfig {
+
+    public static RestTemplate restTemplateWithDisabledSSL() throws NoSuchAlgorithmException, KeyManagementException {
+        SSLContext sslContext = SSLContextBuilder.create()
+                .loadTrustMaterial(null, (X509Certificate[] chain, String authType) -> true) // Trust all certificates
+                .build();
+
+        SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext);
+
+        CloseableHttpClient httpClient = HttpClients.custom()
+                .setSSLSocketFactory(csf)
+                .build();
+
+        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+        requestFactory.setHttpClient(httpClient);
+
+        return new RestTemplate(requestFactory);
+    }
+}
