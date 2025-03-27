@@ -162,3 +162,33 @@ public class BTController {
         return btService.executeRequest(btRequest);
     }
 }
+
+import com.example.btclient.BTService;
+import com.example.btclient.BTServiceClient;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
+
+@Configuration
+public class BTConfig {
+
+    @Value("${bt.service.url}")
+    private String btServiceUrl;
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
+
+    @Bean
+    public ObjectMapper objectMapper(){
+        return new ObjectMapper();
+    }
+
+    @Bean
+    public BTService btService(RestTemplate restTemplate,ObjectMapper objectMapper) {
+        return new BTServiceClient(restTemplate, btServiceUrl, objectMapper);
+    }
+}
