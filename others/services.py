@@ -271,3 +271,37 @@ public class HttpHeadersExample {
         */
     }
 }
+
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.stereotype.Component;
+
+@SpringBootApplication
+public class CommandLineApp {
+
+    public static void main(String[] args) {
+        SpringApplication.run(CommandLineApp.class, args);
+    }
+
+    @Component
+    public static class MyCommandLineRunner implements CommandLineRunner {
+
+        @Override
+        public void run(String... args) throws Exception {
+            System.out.println("Hello from Spring Boot Command Line App!");
+
+            if (args.length > 0) {
+                System.out.println("Arguments passed:");
+                for (String arg : args) {
+                    System.out.println("- " + arg);
+                }
+            } else {
+                System.out.println("No arguments passed.");
+            }
+
+            // Optionally, you can add more logic here.
+            // For example, reading files, processing data, etc.
+        }
+    }
+}
