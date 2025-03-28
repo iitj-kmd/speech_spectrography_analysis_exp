@@ -470,3 +470,75 @@ public class ExternalApiService {
 
 
 
+////////////////////////////////////
+////////////////////////////////////////////////////////////
+
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+
+import java.io.IOException;
+
+@Component
+public class ExternalApiClientRestTemplate {
+
+    private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
+
+    public ExternalApiClientRestTemplate(RestTemplate restTemplate, ObjectMapper objectMapper) {
+        this.restTemplate = restTemplate;
+        this.objectMapper = objectMapper;
+    }
+
+    public YourDataObject fetchData(String externalServiceUrl, Object requestBody) throws IOException {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Object> entity = new HttpEntity<>(requestBody, headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                externalServiceUrl,
+                HttpMethod.POST,
+                entity,
+                String.class);
+
+        if (response.getStatusCode() == HttpStatus.OK) {
+            return processResponse(response.getBody());
+        } else {
+            throw new RuntimeException("External API call failed with status: " + response.getStatusCode());
+        }
+    }
+
+    private YourDataObject processResponse(String responseBody) throws IOException {
+        JsonNode rootNode = objectMapper.readTree(responseBody);
+
+        JsonNode statusNode = rootNode.get("status");
+        if (statusNode != null && "failure".equalsIgnoreCase(statusNode.asText())) {
+            String errorMessage = rootNode.path("errorMessage").asText("Unknown failure");
+            throw new RuntimeException("External API returned failure: " + errorMessage);
+        }
+
+        JsonNode dataNode = rootNode.get("data");
+        if (dataNode == null) {
+            throw new RuntimeException("External API response missing 'data' node");
+        }
+        return objectMapper.treeToValue(dataNode, YourDataObject.class);
+    }
+
+    // YourDataObject class (replace with your actual data class)
+    public static class YourDataObject {
+        private String field1;
+        private int field2;
+        // ... getters, setters, constructors ...
+    }
+}
+
+
+
