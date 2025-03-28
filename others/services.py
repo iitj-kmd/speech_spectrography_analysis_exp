@@ -367,3 +367,106 @@ public class EnumExample {
         }
     }
 }
+
+////////////////////////////////////////////////////////////////
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.io.IOException;
+
+@Service
+public class ExternalApiService {
+
+    private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
+
+    public ExternalApiService(RestTemplate restTemplate, ObjectMapper objectMapper) {
+        this.restTemplate = restTemplate;
+        this.objectMapper = objectMapper;
+    }
+
+    public YourDataObject fetchDataFromExternalService(String externalServiceUrl, Object requestBody) throws IOException {
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Object> entity = new HttpEntity<>(requestBody, headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                externalServiceUrl,
+                HttpMethod.POST, // Or GET, PUT, DELETE as needed
+                entity,
+                String.class);
+
+        if (response.getStatusCode() == HttpStatus.OK) {
+            String responseBody = response.getBody();
+            return processResponse(responseBody);
+        } else {
+            // Handle non-OK status codes (e.g., 4xx, 5xx)
+            throw new RuntimeException("External service returned status code: " + response.getStatusCode());
+        }
+    }
+
+    private YourDataObject processResponse(String responseBody) throws IOException {
+        JsonNode rootNode = objectMapper.readTree(responseBody);
+
+        JsonNode statusNode = rootNode.get("status");
+        if (statusNode != null && "failure".equalsIgnoreCase(statusNode.asText())) {
+            // Handle failure case
+            JsonNode errorMessageNode = rootNode.get("errorMessage"); //or whatever error field is called
+            String errorMessage = errorMessageNode != null ? errorMessageNode.asText() : "Unknown failure";
+            throw new RuntimeException("External service returned failure: " + errorMessage);
+        }
+
+        // Handle success case (parse the data into YourDataObject)
+        // Example: Assume the success data is under a "data" node
+        JsonNode dataNode = rootNode.get("data");
+
+        if (dataNode == null){
+            throw new RuntimeException("External service returned success, but data node is missing.");
+        }
+
+        // Example: Convert dataNode to YourDataObject
+        // Adjust the conversion logic based on the actual structure of YourDataObject
+        try {
+            return objectMapper.treeToValue(dataNode, YourDataObject.class);
+        } catch (IOException e){
+            throw new RuntimeException("Error mapping JSON to YourDataObject", e);
+        }
+
+    }
+
+    // Example YourDataObject class (replace with your actual data class)
+    public static class YourDataObject {
+        private String field1;
+        private int field2;
+
+        // Constructors, getters, setters, etc.
+        public String getField1() {
+            return field1;
+        }
+
+        public void setField1(String field1) {
+            this.field1 = field1;
+        }
+
+        public int getField2() {
+            return field2;
+        }
+
+        public void setField2(int field2) {
+            this.field2 = field2;
+        }
+    }
+}
+
+
+
