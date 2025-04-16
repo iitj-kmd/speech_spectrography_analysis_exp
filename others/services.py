@@ -1,57 +1,95 @@
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.Resource;
-import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.web.client.RestTemplate;
+openapi: 3.0.0
+info:
+  title: Offers API
+  version: v1
 
-import javax.net.ssl.SSLContext;
-import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
+servers:
+  - url: /cxm/prospect
 
-@Configuration
-public class RestTemplateConfig {
+paths:
+  /offers:
+    post:
+      summary: Get offers based on visitor information
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfferRequest'
+      responses:
+        '200':
+          description: Successful response (details of the response will depend on your actual API)
+          content:
+            application/json:
+              # Define your success response schema here if you have one
+              example:
+                offers: []
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              example:
+                error: "Invalid input"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              example:
+                error: "Internal server error"
 
-    @Value("${truststore.path}")
-    private Resource truststorePath;
+components:
+  schemas:
+    GlobalRequest:
+      type: object
+      properties:
+        client_identifier:
+          type: string
+          description: Identifier of the client
+          example: ASPEN
+        request_identifier:
+          type: string
+          description: Identifier of the request
+          example: CS-ASPEN-OMI
+        locale:
+          type: string
+          description: Locale of the request
+          example: en-US
+        request_ts:
+          type: string
+          format: date-time
+          description: Timestamp of the request
+          example: 2023-03-22T17:19:54.014-0700
+        request_type:
+          type: string
+          description: Type of the request
+          example: offers/traits
 
-    @Value("${truststore.password}")
-    private String truststorePassword;
+    VisitorInfo:
+      type: object
+      properties:
+        pznid:
+          type: string
+          description: Visitor identifier
+          example: 27732220528357082048435368852113564596|9
+        hmid:
+          type: string
+          description: Hashed visitor identifier
+          example: 6cc9f96ab2391460eae12e53704a6f7f400899a76aea85d9185bdd613647678d
+        encrypted:
+          type: string
+          description: Indicates if visitor info is encrypted
+          enum:
+            - Yes
+            - No
+          example: Yes
 
-    @Bean
-    public RestTemplate restTemplate(ClientHttpRequestFactory clientHttpRequestFactory) {
-        return new RestTemplate(clientHttpRequestFactory);
-    }
-
-    @Bean
-    public ClientHttpRequestFactory clientHttpRequestFactory() {
-        try {
-            KeyStore trustStore = KeyStore.getInstance("JKS");
-            trustStore.load(truststorePath.getInputStream(), truststorePassword.toCharArray());
-
-            SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
-                    .loadTrustMaterial(trustStore, null) // No key manager needed for client-side trust
-                    .build();
-
-            SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContext);
-            CloseableHttpClient httpClient = HttpClients.custom()
-                    .setSSLSocketFactory(socketFactory)
-                    .build();
-
-            HttpComponentsClientHttpRequestFactory clientHttpRequestFactory =
-                    new HttpComponentsClientHttpRequestFactory(httpClient);
-            return clientHttpRequestFactory;
-
-        } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException | KeyManagementException e) {
-            throw new IllegalStateException("Failed to initialize client request factory with truststore", e);
-        }
-    }
-}
+    OfferRequest:
+      type: object
+      properties:
+        global_request:
+          $ref: '#/components/schemas/GlobalRequest'
+        visitor_info:
+          $ref: '#/components/schemas/VisitorInfo'
+      required:
+        - global_request
+        - visitor_info
