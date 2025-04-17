@@ -1,228 +1,242 @@
 openapi: 3.0.0
 info:
-  title: Offers API
-  version: v1
-
+  title: Offer Request API
+  version: 1.0.0
+  description: API for submitting offer requests and retrieving associated product details.
 servers:
-  - url: /cxm/prospect
-
+  - url: https://api.example.com/v1 # Replace with your actual API base URL
+    description: Main API server
 paths:
-  /offers:
+  /offerRequest: # Added leading slash to the path
     post:
-      summary: Get offers based on visitor information
+      summary: Submit an Offer Request
+      description: Sends visitor and request details to retrieve applicable offers and product information.
+      operationId: submitOfferRequest # Unique identifier for the operation
+      tags:
+        - Offers
       requestBody:
+        description: Details needed to process the offer request. (Schema needs definition based on actual request requirements)
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OfferRequest'
+              type: object
+              properties:
+                visitorIdentifier:
+                  type: string
+                  description: Unique identifier for the visitor (e.g., hhold, pnr, or custXrefId).
+                  example: "N72222054283574082884435368852113564598/9"
+                requestContext:
+                  type: object
+                  description: Additional context for the request (example placeholder).
+                  properties:
+                    source:
+                      type: string
+                      example: "WebApp"
+              required:
+                - visitorIdentifier
       responses:
         '200':
-          description: Successful response
+          description: Successful retrieval of offer details.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OfferResponse'
+                $ref: '#/components/schemas/OfferResponse' # Reference the main response schema below
+              example: # The example you provided
+                global_response:
+                  request_identifier: "OMIASPEN OMI"
+                  explanation_message: "Success/Failure"
+                  responseTimestamp: "2025-04-10T17:19:54.076-0700"
+                visitor_details:
+                  hhold: "acc9f96a8a2391460eae12e3704a467f408899476aea85d5185bdd613647678d"
+                  pnr: "N72222054283574082884435368852113564598/9"
+                  psn: "123456789"
+                  custXrefId: "987654321"
+                  lastUpdatedTimestamp: "2025-03-09T19:43:00.8365376"
+                omi_product_response:
+                  aspen:
+                    products:
+                      - product_metadata:
+                          requestId: "S03YF2VhWU7Zh4w3UoNCYMTtr4uvicGH1741401173736"
+                          dcfScore: "0.0"
+                          dcfRevenueScore": "0.45521"
+                          controlGrpInd: "3"
+                          decisionStatusCode: null
+                          decisionReason: null
+                          decisionGroupCode: null
+                          pcn: null
+                          productEventTimestamp: "2025-03-05T17:19:54.076-0700"
+                        product:
+                          - iaCode: "RJF"
+                            sourceCode: "44601"
+                            order: "1"
+                            specialOfferIndicator: "Y"
+                            startDate: ""
+                            endDate: ""
+                            eligibility_status: null
+                          - iaCode: "BDY"
+                            sourceCode: "61482"
+                            otc: ""
+                            order: "1"
+                            specialOfferIndicator": "Y"
+                            offer: "94"
+                            startDate: ""
+                            endDate: ""
+                            eligibility_status": null
+                      - product_metadata:
+                          requestId: "a02RF2VhWU7Zh4w3UoNCYMTtr4uvicGH1841501173712"
+                          dcfScore": "0.0"
+                          dcfRevenueScore": "0.45521"
+                          controlGrpInd: "3"
+                          decisionStatusCode": null
+                          decisionReason": null
+                          decisionGroupCode": null
+                          pcn": null
+                          productEventTimestamp": "2025-03-06T17:19:54.076-0700"
+                        product:
+                          - iaCode: "RJF"
+                            sourceCode: "44601"
+                            order: "1"
+                            specialOfferIndicator": "Y"
+                            startDate: ""
+                            endDate: ""
+                            eligibility_status": null
         '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Request - Invalid input provided.
         '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          description: Internal Server Error - Processing failed.
 
 components:
   schemas:
-    GlobalRequest:
-      type: object
-      properties:
-        client_identifier:
-          type: string
-          description: Identifier of the client
-          example: ASPEN
-        request_identifier:
-          type: string
-          description: Identifier of the request
-          example: CS-ASPEN-OMI
-        locale:
-          type: string
-          description: Locale of the request
-          example: en-US
-        request_ts:
-          type: string
-          format: date-time
-          description: Timestamp of the request
-          example: 2023-03-22T17:19:54.014-0700
-        request_type:
-          type: string
-          description: Type of the request
-          example: offers/traits
-
-    VisitorInfo:
-      type: object
-      properties:
-        pznid:
-          type: string
-          description: Visitor identifier
-          example: 27732220528357082048435368852113564596|9
-        hmid:
-          type: string
-          description: Hashed visitor identifier
-          example: 6cc9f96ab2391460eae12e53704a6f7f400899a76aea85d9185bdd613647678d
-        encrypted:
-          type: string
-          description: Indicates if visitor info is encrypted
-          enum:
-            - Yes
-            - No
-          example: Yes
-
-    OfferRequest:
-      type: object
-      properties:
-        global_request:
-          $ref: '#/components/schemas/GlobalRequest'
-        visitor_info:
-          $ref: '#/components/schemas/VisitorInfo'
-      required:
-        - global_request
-        - visitor_info
-
-    GlobalResponse:
-      type: object
-      properties:
-        request_identifier:
-          type: string
-          description: Identifier of the request
-          example: CS-ASPEN-OM
-        explanation_code:
-          type: string
-          description: Explanation code for the response
-          example: OMI0000
-        explanation_message:
-          type: string
-          description: Explanation message for the response
-          example: Success/Failure
-        response_ts:
-          type: string
-          format: date-time
-          description: Timestamp of the response
-          example: 2025-04-10T17:19:54.076-0700
-
-    VisitorIdentity:
-      type: object
-      properties:
-        hmid:
-          type: string
-          description: Hashed visitor identifier
-          example: 6cc9f96ab2391460eae12e53704a6f7f400899a76aea85d9185bdd613647678d
-        pznId:
-          type: string
-          description: Visitor identifier
-          example: 27732220528357082048435368852113564596|9
-        cmInd:
-          type: string
-          description: Customer match indicator (Y/N)
-          example: "(Y/N)"
-        pin:
-          type: string
-          description: PIN
-          example: "999185bdd613647643"
-        custXrefId:
-          type: string
-          description: Customer cross-reference ID
-          example: J56255GFREE484353688521135
-        gctId:
-          type: string
-          description: Global customer tracking ID
-          example: J56255GFREddsdkskdjsE484353688521135d7787
-        last_updated_ts:
-          type: string
-          format: date-time
-          description: Timestamp of the last update
-          example: 2025-05-10T17:19:54.076-0700
-
-    Offer:
-      type: object
-      properties:
-        iaCode:
-          type: string
-          description: IA Code
-          example: ""
-        sourceCode:
-          type: string
-          description: Source Code
-          example: "#Aspen will populate outgoing EEP here"
-        startDt:
-          type: string
-          description: Start Date
-          example: ""
-        endDt:
-          type: string
-          description: End Date
-          example: ""
-        specialOfferIndicator:
-          type: string
-          description: Special Offer Indicator
-          example: "#Aspen-indicator"
-        otc:
-          type: string
-          description: Offer Tracking Code
-          example: "#offer tracking code which is POA for sourceCode"
-        offerRankOrder:
-          type: string
-          description: Offer Rank Order
-          example: "#Prequal Response"
-        treatmentId:
-          type: string
-          description: Treatment ID
-          example: "#Prequal will use this info"
-        requestTs:
-          type: string
-          description: Request Timestamp
-          example: ""
-        dcfScore:
-          type: string
-          description: DCF Score
-          example: "0.0"
-        dcfRevenueScore:
-          type: string
-          description: DCF Revenue Score
-          example: "0.45521"
-        controlGrpInd:
-          type: string
-          description: Control Group Indicator
-          example: "3"
-
-    OffersByClient:
-      type: object
-      properties:
-        offers:
-          type: array
-          items:
-            $ref: '#/components/schemas/Offer'
-
     OfferResponse:
       type: object
       properties:
         global_response:
           $ref: '#/components/schemas/GlobalResponse'
-        visitor_identity:
-          $ref: '#/components/schemas/VisitorIdentity'
-        ASPEN:
-          $ref: '#/components/schemas/OffersByClient'
-        DM:
-          $ref: '#/components/schemas/OffersByClient'
-
-    ErrorResponse:
+        visitor_details:
+          $ref: '#/components/schemas/VisitorDetails'
+        omi_product_response:
+          $ref: '#/components/schemas/OmiProductResponse'
+    GlobalResponse:
       type: object
       properties:
-        error:
+        request_identifier:
           type: string
-          description: Error message
-          example: "Invalid input"
+          example: "OMIASPEN OMI"
+        explanation_message:
+          type: string
+          example: "Success/Failure"
+        responseTimestamp:
+          type: string
+          format: date-time # ISO 8601 format
+          example: "2025-04-10T17:19:54.076-0700"
+    VisitorDetails:
+      type: object
+      properties:
+        hhold:
+          type: string
+          example: "acc9f96a8a2391460eae12e3704a467f408899476aea85d5185bdd613647678d"
+        pnr:
+          type: string
+          example: "N72222054283574082884435368852113564598/9"
+        psn:
+          type: string
+          example: "123456789"
+        custXrefId:
+          type: string
+          example: "987654321"
+        lastUpdatedTimestamp:
+          type: string
+          # format: date-time # Format seems slightly different, keeping as string
+          example: "2025-03-09T19:43:00.8365376"
+    OmiProductResponse:
+      type: object
+      properties:
+        aspen:
+          $ref: '#/components/schemas/AspenResponse'
+    AspenResponse:
+      type: object
+      properties:
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductEntry'
+    ProductEntry:
+      type: object
+      properties:
+        product_metadata:
+          $ref: '#/components/schemas/ProductMetadata'
+        product:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductDetail'
+    ProductMetadata:
+      type: object
+      properties:
+        requestId:
+          type: string
+          example: "S03YF2VhWU7Zh4w3UoNCYMTtr4uvicGH1741401173736"
+        dcfScore:
+          type: string # Assuming string based on example "0.0"
+          example: "0.0"
+        dcfRevenueScore:
+          type: string # Assuming string based on example "0.45521"
+          example: "0.45521"
+        controlGrpInd:
+          type: string # Assuming string based on example "3"
+          example: "3"
+        decisionStatusCode:
+          type: object # Can be any type or null
+          nullable: true
+          example: null
+        decisionReason:
+          type: object # Can be any type or null
+          nullable: true
+          example: null
+        decisionGroupCode:
+          type: object # Can be any type or null
+          nullable: true
+          example: null
+        pcn:
+          type: object # Can be any type or null
+          nullable: true
+          example: null
+        productEventTimestamp:
+          type: string
+          format: date-time
+          example: "2025-03-05T17:19:54.076-0700"
+    ProductDetail:
+      type: object
+      properties:
+        iaCode:
+          type: string
+          example: "RJF"
+        sourceCode:
+          type: string
+          example: "44601"
+        otc:
+          type: string
+          nullable: true
+          example: ""
+        order:
+          type: string # Assuming string based on example "1"
+          example: "1"
+        specialOfferIndicator:
+          type: string
+          example: "Y"
+        offer:
+          type: string
+          nullable: true # Example shows it missing sometimes
+          example: "94"
+        startDate:
+          type: string
+          # format: date # Could be date if populated
+          example: ""
+        endDate:
+          type: string
+          # format: date # Could be date if populated
+          example: ""
+        eligibility_status:
+          type: object # Can be any type or null
+          nullable: true
+          example: null
